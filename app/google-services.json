@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "436983646129",
+    "firebase_url": "https://socialvideosnap.firebaseio.com",
+    "project_id": "socialvideosnap",
+    "storage_bucket": "socialvideosnap.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:436983646129:android:ccdc6f229d8d04ac",
+        "android_client_info": {
+          "package_name": "com.example.abc.myapplication"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "436983646129-k6jc0ldiulqr42nlv591aj07bus21hff.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.abc.myapplication",
+            "certificate_hash": "c29d2ca03836c01408b837f74d93d6e66fa2a293"
+          }
+        },
+        {
+          "client_id": "436983646129-uvotv5l59edt2vubsp69ec3psfmtinna.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwjOxW1e6IajQsw7PMHhcFpMLiWZEaXWE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "436983646129-uvotv5l59edt2vubsp69ec3psfmtinna.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
