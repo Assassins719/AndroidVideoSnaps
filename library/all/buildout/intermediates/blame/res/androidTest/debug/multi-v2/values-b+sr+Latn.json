@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "C:\\Users\\ABC\\Downloads\\ExoPlayer-release-v2\\ExoPlayer-release-v2\\library\\all\\buildout\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values-b+sr+Latn\\values-b+sr+Latn.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\ABC\\Downloads\\ExoPlayer-release-v2\\ExoPlayer-release-v2\\library\\ui\\buildout\\intermediates\\bundles\\debug\\res\\values-b+sr+Latn\\values-b+sr+Latn.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9,10,11,12",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,167,269,367,461,569,674,789,895,1001,1108",
+                        "endColumns": "111,101,97,93,107,104,114,105,105,106,95",
+                        "endOffsets": "162,264,362,456,564,669,784,890,996,1103,1199"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "C:\\Users\\ABC\\Downloads\\ExoPlayer-release-v2\\ExoPlayer-release-v2\\library\\all\\buildout\\intermediates\\incremental\\mergeDebugAndroidTestResources\\merged.dir\\values-zh-rHK\\values-zh-rHK.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\ABC\\Downloads\\ExoPlayer-release-v2\\ExoPlayer-release-v2\\library\\ui\\buildout\\intermediates\\bundles\\debug\\res\\values-zh-rHK\\values-zh-rHK.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8,9,10,11,12",
+                        "startColumns": "4,4,4,4,4,4,4,4,4,4,4",
+                        "startOffsets": "55,155,249,341,432,530,631,731,833,926,1022",
+                        "endColumns": "99,93,91,90,97,100,99,101,92,95,89",
+                        "endOffsets": "150,244,336,427,525,626,726,828,921,1017,1107"
+                    }
+                }
+            ]
+        }
+    ]
+}

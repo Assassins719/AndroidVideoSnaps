@@ -1,30 +1,30 @@
 package com.example.abc.myapplication;
 
+import android.Manifest;
 import android.content.Intent;
-import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
+import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.VideoView;
 
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-
-import org.w3c.dom.Text;
+import com.google.firebase.storage.FirebaseStorage;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -35,28 +35,59 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     ListView listView;
     DatabaseReference myRef;
     DataListAdapter mDataListAdapter;
-
+    FloatingActionButton fb_add;
     private ArrayList<StoryData> mData = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT);
         setContentView(R.layout.activity_main);
+        initView();
+    }
 
-
+    public void initView() {
+        fb_add = (FloatingActionButton) findViewById(R.id.fab);
+        fb_add.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                Intent newIntent = new Intent(MainActivity.this, VideoCapture.class);
+                startActivity(newIntent);
+            }
+        });
         listView = (ListView) findViewById(R.id.list_view);
-        readFirebase();
         mDataListAdapter = new DataListAdapter();
         listView.setAdapter(mDataListAdapter);
         listView.setOnItemClickListener(MainActivity.this);
         listView.setItemsCanFocus(false);
         listView.setChoiceMode(ListView.CHOICE_MODE_SINGLE);
-        mDataListAdapter.notifyDataSetChanged();
-
+        readFirebase();
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_DENIED)
+        {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{ android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE , Manifest.permission.RECORD_AUDIO},
+                    1);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+                == PackageManager.PERMISSION_DENIED)
+        {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{ android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE , Manifest.permission.RECORD_AUDIO},
+                    1);
+        }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_DENIED)
+        {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{ android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE , Manifest.permission.RECORD_AUDIO},
+                    1);
+        }
     }
 
-    public void readFirebase(){
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("storynames");
+    public void readFirebase() {
+        GlobalVar.mDatabaseRef = FirebaseDatabase.getInstance().getReference();
+        GlobalVar.mStorageRef = FirebaseStorage.getInstance().getReference();
+        myRef = GlobalVar.mDatabaseRef.child("storynames");
         myRef.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -69,13 +100,15 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     Map<String, Object> dataList = (Map<String, Object>) dataSnapshot.getValue();
                     if (dataList == null) {
                     }
+                    mData.clear();
+                    mDataListAdapter.clear();
                     for (Map.Entry<String, Object> entry : dataList.entrySet()) {
                         StoryData mtemp = _analysisRecord(entry);
                         mData.add(mtemp);
+                        GlobalVar.mData.add(mtemp.strStory);
                         mDataListAdapter.add(mtemp);
                     }
                     mDataListAdapter.notifyDataSetChanged();
-
                 } catch (Exception e) {
                 }
             }
@@ -92,12 +125,13 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         StoryData dataItem = new StoryData();
         try {
             Map<String, Object> item = (Map<String, Object>) entry.getValue();
-            dataItem.strStory = getString(item,"story_name");
+            dataItem.strStory = getString(item, "story_name");
         } catch (Exception e) {
             Log.e("DFEFE", "583 " + e.toString());
         }
         return dataItem;
     }
+
     public String getString(Map<String, Object> item, String key) {
         String res = "";
         try {
@@ -123,16 +157,19 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         public String strVideo;
         public String strImage;
         public String strStory;
-        StoryData () {
+
+        StoryData() {
             strVideo = "";
             strImage = "";
             strStory = "";
         }
     }
+
     private static class ViewHolder {
         TextView tx_story;
         TextView tx_url;
     }
+
     private class DataListAdapter extends BaseAdapter {
         private LayoutInflater mInflator;
         private ArrayList<StoryData> mEventData;
