@@ -31,8 +31,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
     compile 'com.squareup.retrofit2:retrofit:2.1.0'
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
-
+    compile 'org.apache.directory.studio:org.apache.commons.io:2.4'
     compile 'com.danikula:videocache:2.7.0'
+    implementation 'com.google.android.exoplayer:exoplayer:2.6.0'
+    compile 'commons-io:commons-io:2.4'
+    compile 'com.googlecode.mp4parser:isoparser:1.1.21'
 }
 
 

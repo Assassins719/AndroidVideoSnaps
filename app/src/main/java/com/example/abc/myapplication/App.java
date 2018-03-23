@@ -10,7 +10,7 @@ import com.danikula.videocache.HttpProxyCacheServer;
  */
 public class App extends Application {
 
-    private HttpProxyCacheServer proxy;
+        private HttpProxyCacheServer proxy;
 
     public static HttpProxyCacheServer getProxy(Context context) {
         Application app = (Application) context.getApplicationContext();
@@ -20,6 +20,17 @@ public class App extends Application {
 
     private static HttpProxyCacheServer newProxy(Context context) {
         return new HttpProxyCacheServer(context);
-
     }
+//    private HttpProxyCacheServer proxy;
+//
+//    public static HttpProxyCacheServer getProxy(Context context) {
+//        App app = (App) context.getApplicationContext();
+//        return app.proxy == null ? (app.proxy = app.newProxy()) : app.proxy;
+//    }
+//
+//    private HttpProxyCacheServer newProxy() {
+//        return new HttpProxyCacheServer.Builder(this)
+//                .cacheDirectory(Utils.getVideoCacheDir(this))
+//                .build();
+//    }
 }

@@ -1,9 +1,12 @@
 package com.example.abc.myapplication;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -26,7 +29,13 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 
+import org.apache.commons.io.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener {
@@ -82,8 +91,43 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     new String[]{ android.Manifest.permission.CAMERA, android.Manifest.permission.WRITE_EXTERNAL_STORAGE , Manifest.permission.RECORD_AUDIO},
                     1);
         }
-    }
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CLEAR_APP_CACHE) != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale((MainActivity) this,
+                    Manifest.permission.CLEAR_APP_CACHE)) {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.CLEAR_APP_CACHE},
+                        1);
 
+            } else {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[]{Manifest.permission.CLEAR_APP_CACHE},
+                        1);
+            }
+        }
+    }
+    public void clearCache(){
+        PackageManager pm = getPackageManager();
+        List<ApplicationInfo> installedApplications = pm.getInstalledApplications(0);
+        for (ApplicationInfo applicationInfo : installedApplications) {
+            try {
+                Context packageContext = createPackageContext(applicationInfo.packageName, 0);
+                List<File> directories = new ArrayList<>();
+                directories.add(packageContext.getCacheDir());
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    Collections.addAll(directories, packageContext.getExternalCacheDirs());
+                } else {
+                    directories.add(packageContext.getExternalCacheDir());
+                }
+
+                StringBuilder command = new StringBuilder("rm -rf");
+                for (File directory : directories) {
+                    command.append(" \"" + directory.getAbsolutePath() + "\"");
+                }
+                FileUtils.deleteQuietly(getApplicationContext().getCacheDir());
+            } catch (PackageManager.NameNotFoundException wtf) {
+            }
+        }
+    }
     public void readFirebase() {
         GlobalVar.mDatabaseRef = FirebaseDatabase.getInstance().getReference();
         GlobalVar.mStorageRef = FirebaseStorage.getInstance().getReference();
@@ -101,6 +145,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                     if (dataList == null) {
                     }
                     mData.clear();
+                    GlobalVar.mData.clear();
                     mDataListAdapter.clear();
                     for (Map.Entry<String, Object> entry : dataList.entrySet()) {
                         StoryData mtemp = _analysisRecord(entry);
@@ -120,7 +165,17 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             }
         });
     }
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
 
+            Utils.cleanVideoCacheDir(this);
+        } catch (IOException e) {
+            Log.e(null, "Error cleaning cache", e);
+            Toast.makeText(this, "Error cleaning cache", Toast.LENGTH_LONG).show();
+        }
+    }
     public StoryData _analysisRecord(Map.Entry<String, Object> entry) {
         StoryData dataItem = new StoryData();
         try {
@@ -143,7 +198,34 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
         }
         return res;
     }
-
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode,
+//                                           String permissions[], int[] grantResults) {
+//        switch (requestCode) {
+//            case 1: {
+//                // If request is cancelled, the result arrays are empty.
+//                if (grantResults.length > 0
+//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//
+//                    // permission was granted, yay! Do the
+//
+//                    // contacts-related task you need to do.
+//
+//
+//                } else {
+//
+//                    // permission denied, boo! Disable the
+//                    // functionality that depends on this permission.
+//
+//                    Toast.makeText(this,"You need to accept the permission",Toast.LENGTH_SHORT).show();
+//                }
+//                return;
+//            }
+//
+//            // other 'case' lines to check for other
+//            // permissions this app might request
+//        }
+//    }
     @Override
     public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
         Intent newIntent = new Intent(MainActivity.this, VideoplayActivity.class);

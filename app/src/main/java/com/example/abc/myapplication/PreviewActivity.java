@@ -17,6 +17,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.MediaController;
+import android.widget.Toast;
 import android.widget.VideoView;
 
 import com.google.android.gms.tasks.OnFailureListener;
@@ -47,6 +48,7 @@ public class PreviewActivity extends AppCompatActivity {
     VideoView vv_video;
     Button btn_back, btn_upload;
     String strStoryName = "";
+    Boolean isUploading = false;
     DatabaseReference myRef;
 
     @Override
@@ -76,7 +78,8 @@ public class PreviewActivity extends AppCompatActivity {
         btn_upload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                uploadVideo();
+                uploadVideo(strVideo);
+                isUploading = true;
             }
         });
         vv_video = (VideoView) findViewById(R.id.vv_video);
@@ -94,12 +97,10 @@ public class PreviewActivity extends AppCompatActivity {
         vv_video.setVideoPath(strVideo);
         vv_video.start();
     }
-
     AlertDialog levelDialog;
 
-    public void uploadVideo() {
+    public void uploadVideo(final String strVideoPath) {
         // Strings to Show In Dialog with Radio Buttons
-        final CharSequence[] items = {" Easy ", " Medium ", " Hard ", " Very Hard "};
         String[] mStringArray = new String[GlobalVar.mData.size()];
         mStringArray = GlobalVar.mData.toArray(mStringArray);
         // Creating and Building the Dialog
@@ -113,7 +114,13 @@ public class PreviewActivity extends AppCompatActivity {
         });
         builder.setPositiveButton("Confirm", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
-                doUploadVideo();
+                Thread thread = new Thread() {
+                    @Override
+                    public void run() {
+                        doUploadVideo(strVideoPath);
+                    }
+                };
+                thread.start();
                 PreviewActivity.this.finish();
             }
         });
@@ -122,10 +129,10 @@ public class PreviewActivity extends AppCompatActivity {
         levelDialog.show();
     }
 
-    public void doUploadVideo() {
-        Uri file = Uri.fromFile(new File(strVideo));
+    public void doUploadVideo(final String strVideoPath) {
+        Uri file = Uri.fromFile(new File(strVideoPath));
         long nTime = System.currentTimeMillis();
-        StorageReference riversRef = GlobalVar.mStorageRef.child("snaps/" + nTime);
+        StorageReference riversRef = GlobalVar.mStorageRef.child(nTime + ".mp4");
         riversRef.putFile(file)
                 .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                     @Override
@@ -137,7 +144,7 @@ public class PreviewActivity extends AppCompatActivity {
                         mSnap.image_url = "";
                         mSnap.video_url = String.valueOf(downloadUrl);
                         mSnap.story_name = strStoryName;
-                        doUploadImg(mSnap);
+                        doUploadImg(mSnap, strVideoPath);
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -148,28 +155,9 @@ public class PreviewActivity extends AppCompatActivity {
                         Log.d("err", "fail");
                     }
                 });
-
-//// Request
-//        @Headers("Authorization: bearer [your_vimeo_token]")
-//        @PUT
-//        Call<ResponseBody> uploadVideo(@Url String url, @HeaderMap Map<String, String> headers, @Body RequestBody video);
-//
-//// Call
-//        Call<ResponseBody> call = vimeoApi.uploadVideo(vimeoTicket.getUploadLinkSecure(), headers, video);
-//        call.enqueue(new Callback<ResponseBody>() {
-//            @Override
-//            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-//                // Continue with delete upload ticket
-//            }
-//
-//            @Override
-//            public void onFailure(Call<ResponseBody> call, Throwable t) {
-//                // Uploading video failed
-//            }
-//        });
     }
 
-    public void doUploadImg(final NewSnap mSnap) {
+    public void doUploadImg(final NewSnap mSnap, final String strVideoPath) {
         Bitmap bMap = ThumbnailUtils.createVideoThumbnail(strVideo, MediaStore.Video.Thumbnails.FULL_SCREEN_KIND);
         long nTime = System.currentTimeMillis();
         Uri filePath = createPngFile(bMap);
@@ -183,7 +171,7 @@ public class PreviewActivity extends AppCompatActivity {
                         mSnap.image_url = String.valueOf(downloadUrl);
                         myRef = GlobalVar.mDatabaseRef.child("stories").child("" + mSnap.nTime);
                         myRef.setValue(mSnap);
-                        File file = new File(strVideo);
+                        File file = new File(strVideoPath);
                         file.delete();
                         if (file.exists()) {
                             try {
@@ -195,6 +183,8 @@ public class PreviewActivity extends AppCompatActivity {
                                 getApplicationContext().deleteFile(file.getName());
                             }
                         }
+                        Toast.makeText(getApplicationContext(), "Snap Upload Completed!",
+                                Toast.LENGTH_LONG).show();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
@@ -203,6 +193,8 @@ public class PreviewActivity extends AppCompatActivity {
                         // Handle unsuccessful uploads
                         // ...
                         Log.d("err", "fail");
+                        Toast.makeText(getApplicationContext(), "Snap Upload Filed!",
+                                Toast.LENGTH_LONG).show();
                     }
                 });
     }
@@ -222,5 +214,16 @@ public class PreviewActivity extends AppCompatActivity {
             e.printStackTrace();
         }
         return null;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(isUploading){
+
+        }else{
+            File file = new File(strVideo);
+            file.delete();
+        }
     }
 }

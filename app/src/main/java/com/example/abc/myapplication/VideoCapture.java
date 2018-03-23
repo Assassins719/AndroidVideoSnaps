@@ -12,21 +12,17 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
-import android.util.Size;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import java.io.IOException;
-import java.util.List;
 
 public class VideoCapture extends AppCompatActivity implements Camera.AutoFocusCallback {
     private Camera mCamera;
@@ -39,12 +35,12 @@ public class VideoCapture extends AppCompatActivity implements Camera.AutoFocusC
     Button btn_back, btn_change;
     ProgressBar pb_record;
     int nProgress = 0;
-    String strVideo = "/sdcard/mysnaps.mp4"; //Use Static Path for snap record
+    String strVideoPath = "/sdcard/";
+    String strVideo = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        setContentView(R.layout.activity_video_capture);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -231,7 +227,7 @@ public class VideoCapture extends AppCompatActivity implements Camera.AutoFocusC
     public void gotoPreview() {
         Intent newIntent = new Intent(VideoCapture.this, PreviewActivity.class);
         Bundle b = new Bundle();
-        b.putString("url", strVideo); //Your id
+        b.putString("url", strVideoPath + strVideo + ".mp4"); //Your id
         newIntent.putExtras(b); //Put your id to your next Intent
         startActivity(newIntent);
         releaseCamera();
@@ -274,15 +270,6 @@ public class VideoCapture extends AppCompatActivity implements Camera.AutoFocusC
             });
             recording = true;
             setProgressAnimate();
-//            handler = new Handler();
-//            final Runnable r = new Runnable() {
-//                public void run() {
-//                    if(recording){
-//                        doRecord();
-//                    }
-//                }
-//            };
-//            handler.postDelayed(r, 10000);
         }
     }
 
@@ -308,6 +295,12 @@ public class VideoCapture extends AppCompatActivity implements Camera.AutoFocusC
     }
 
     private boolean prepareMediaRecorder() {
+
+
+
+        //Log.v(TAG, "MediaRecorder initialized");
+
+
         mediaRecorder = new MediaRecorder();
         mCamera.unlock();
         mediaRecorder.setCamera(mCamera);
@@ -316,18 +309,19 @@ public class VideoCapture extends AppCompatActivity implements Camera.AutoFocusC
         } else {
             mediaRecorder.setOrientationHint(270);
         }
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        ////
         CamcorderProfile profile = CamcorderProfile.get(CamcorderProfile.QUALITY_480P);
         profile.videoFrameRate = 30;
         profile.videoBitRate = 1200000;
         profile.audioBitRate = 90000;
-
+        long nTime = System.currentTimeMillis();
+        strVideo = "" + nTime;
         mediaRecorder.setProfile(profile);
-//        mediaRecorder.setVideoFrameRate(QUALITY_HIGH_SPEED_LOW);
-//        mediaRecorder.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_QVGA));
-        mediaRecorder.setOutputFile(strVideo);
+        mediaRecorder.setAudioChannels(1);
+//        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
+        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+        mediaRecorder.setOutputFile(strVideoPath + strVideo + ".mp4");
         mediaRecorder.setMaxDuration(10000); // Set max duration 60 sec.
         mediaRecorder.setMaxFileSize(50000000); // Set max file size 50M
         try {

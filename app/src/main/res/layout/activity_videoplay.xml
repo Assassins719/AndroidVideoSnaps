@@ -5,15 +5,49 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context="com.example.abc.myapplication.VideoplayActivity">
-
+    <FrameLayout
+        android:id="@+id/lyt_frame"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <VideoView
+            android:id="@+id/vv_temp1"
+            android:layout_width="1dp"
+            android:layout_height="1dp" />
+        <VideoView
+            android:id="@+id/vv_temp2"
+            android:layout_width="1dp"
+            android:layout_height="1dp" />
+        <VideoView
+            android:id="@+id/vv_temp3"
+            android:layout_width="1dp"
+            android:layout_height="1dp" />
+        <VideoView
+            android:id="@+id/vv_temp4"
+            android:layout_width="1dp"
+            android:layout_height="1dp" />
+        <VideoView
+            android:id="@+id/vv_temp5"
+            android:layout_width="1dp"
+            android:layout_height="1dp" />
+        <VideoView
+            android:id="@+id/vv_temp6"
+            android:layout_width="1dp"
+            android:layout_height="1dp" />
+    </FrameLayout>
     <VideoView
         android:id="@+id/vv_video"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
-
+        android:layout_height="match_parent" />
+    <com.google.android.exoplayer2.ui.SimpleExoPlayerView
+        android:id="@+id/vv_videoexo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        app:resize_mode="fill"
+        app:use_controller="false" />
     <Button
         android:id="@+id/btn_back"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:background="@drawable/back"/>
+        android:background="@drawable/back" />
 </android.support.constraint.ConstraintLayout>

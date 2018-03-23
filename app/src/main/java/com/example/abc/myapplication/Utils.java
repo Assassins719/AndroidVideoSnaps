@@ -1,14 +1,16 @@
 package com.example.abc.myapplication;
 
+
 import android.content.Context;
 
 import java.io.File;
 import java.io.IOException;
 
 /**
- * Created by ABC on 3/10/2018.
+ * Some utils methods.
+ *
+ * @author Alexey Danilov (danikula@gmail.com).
  */
-
 public class Utils {
 
     public static File getVideoCacheDir(Context context) {
