@@ -23,17 +23,23 @@ import android.widget.VideoView;
 
 import com.danikula.videocache.CacheListener;
 import com.danikula.videocache.HttpProxyCacheServer;
+import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.ExoPlayerFactory;
+import com.google.android.exoplayer2.PlaybackParameters;
+import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
+import com.google.android.exoplayer2.Timeline;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.extractor.ExtractorsFactory;
 import com.google.android.exoplayer2.source.DynamicConcatenatingMediaSource;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
+import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.trackselection.TrackSelector;
 import com.google.android.exoplayer2.ui.SimpleExoPlayerView;
 import com.google.android.exoplayer2.upstream.BandwidthMeter;
@@ -59,7 +65,7 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 public class VideoplayActivity extends AppCompatActivity implements
-        GestureDetector.OnGestureListener, CacheListener {
+        GestureDetector.OnGestureListener, CacheListener, Player.EventListener {
     VideoView vv_video;
     VideoView vv_temp[] = new VideoView[6];
     Button btn_back;
@@ -85,7 +91,7 @@ public class VideoplayActivity extends AppCompatActivity implements
         if (b != null)
             strStory = b.getString("url");
         initView();
-//        initializePlayer();
+        initializePlayer();
         proxy = App.getProxy(this);
     }
 
@@ -96,6 +102,7 @@ public class VideoplayActivity extends AppCompatActivity implements
         for (int i = 0; i < 6; i++) {
             vv_temp[i].stopPlayback();
         }
+        player.stop();
 //        proxy.shutdown();
 //        deleteCache(this);
 
@@ -105,7 +112,7 @@ public class VideoplayActivity extends AppCompatActivity implements
 
     public void initView() {
         dialog = ProgressDialog.show(this, "",
-                "Loading. Please wait...", true);
+                "Loading...", true);
         btn_back = (Button) findViewById(R.id.btn_back);
         btn_back.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -191,11 +198,14 @@ public class VideoplayActivity extends AppCompatActivity implements
     Handler mHandlerCache;
 
     public void playVideo() {
+        MediaSource videoSource = newVideoSource(mData.get(nIndex).strProxyUrl);
+        player.prepare(videoSource);
+
 //        player.getCurrentWindowIndex();
 //        player.seekTo(player.getCurrentWindowIndex() + 1, 0);
 //        String strproxy = proxy.getProxyUrl(mData.get(nIndex).strVideo);
-        vv_video.setVideoPath(mData.get(nIndex).strProxyUrl);
-        vv_video.start();
+//        vv_video.setVideoPath(mData.get(nIndex).strProxyUrl);
+//        vv_video.start();
         mHandler.post(runnable);
 //        runOnUiThread(new Runnable() {
 //            @Override
@@ -209,14 +219,14 @@ public class VideoplayActivity extends AppCompatActivity implements
     final Runnable runnable = new Runnable() {
         public void run() {
             // TODO Auto-generated method stub
-            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            for(int i = 0; i < 6; i ++){
+                vv_temp[i].stopPlayback();
+            }
             int nCount = mData.size();
             int nNext = 0;
-
             nNext = nCount - 1;
             Log.d("Buffering", "Index : " + nIndex + " Next : " + nNext);
             nNext = Math.min(5, nNext);
-
             for (int i = 0; i < nNext; i++) {
                 int nTemp = (nIndex + i + 1) % nCount;
                 vv_temp[i].setVideoPath(mData.get(nTemp).strProxyUrl);
@@ -288,6 +298,14 @@ public class VideoplayActivity extends AppCompatActivity implements
     ExtractorsFactory extractorsFactory;
     DynamicConcatenatingMediaSource mList = new DynamicConcatenatingMediaSource();
 
+    private MediaSource newVideoSource(String url) {
+        DefaultBandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
+        String userAgent = Util.getUserAgent(this, "AndroidVideoCache sample");
+        DataSource.Factory dataSourceFactory = new DefaultDataSourceFactory(this, userAgent, bandwidthMeter);
+        ExtractorsFactory extractorsFactory = new DefaultExtractorsFactory();
+        return new ExtractorMediaSource(Uri.parse(url), dataSourceFactory, extractorsFactory, null, null);
+    }
+
     private void initializePlayer() {
         // Create a default TrackSelector
         BandwidthMeter bandwidthMeter = new DefaultBandwidthMeter();
@@ -302,6 +320,8 @@ public class VideoplayActivity extends AppCompatActivity implements
         //Initialize simpleExoPlayerView
         SimpleExoPlayerView simpleExoPlayerView = findViewById(R.id.vv_videoexo);
         simpleExoPlayerView.setPlayer((SimpleExoPlayer) player);
+        player.setPlayWhenReady(true);
+        player.addListener(this);
 
         // Produces DataSource instances through which media data is loaded.
         dataSourceFactory =
@@ -401,6 +421,7 @@ public class VideoplayActivity extends AppCompatActivity implements
         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) {
             Log.d("Position", "" + event.getX() + ":" + event.getY() + "          " + nWidth + ":" + nHeight);
             if (event.getX() < nWidth / 4) {
+                dialog.show();
 //                if(player.getPreviousWindowIndex() == -1)
 //                    player.seekTo(mList.getSize()-1, 0);
 //                else {
@@ -412,6 +433,7 @@ public class VideoplayActivity extends AppCompatActivity implements
                 strVideo = mData.get(nIndex).strVideo;
                 playVideo();
             } else {
+                dialog.show();
 //                if(player.getNextWindowIndex() == -1)
 //                    player.seekTo(0, 0);
 //                else {
@@ -472,10 +494,11 @@ public class VideoplayActivity extends AppCompatActivity implements
     public void onBackPressed() {
         this.finish();
 //        vv_video.stopPlayback();
-        vv_video.stopPlayback();
+//        vv_video.stopPlayback();
         for (int i = 0; i < 6; i++) {
             vv_temp[i].stopPlayback();
         }
+        player.stop();
 //        proxy.shutdown();
 //        deleteCache(this);
 //        player.stop();
@@ -515,6 +538,7 @@ public class VideoplayActivity extends AppCompatActivity implements
         for (int i = 0; i < 6; i++) {
             vv_temp[i].pause();
         }
+        pausePlayer();
 //        proxy.shutdown();
 //        deleteCache(this);
 //        try {
@@ -535,6 +559,83 @@ public class VideoplayActivity extends AppCompatActivity implements
         for (int i = 0; i < 6; i++) {
             vv_temp[i].resume();
         }
+        startPlayer();
+    }
+    private void pausePlayer(){
+        player.setPlayWhenReady(false);
+        player.getPlaybackState();
+    }
+    private void startPlayer(){
+        player.setPlayWhenReady(true);
+        player.getPlaybackState();
+    }
+    @Override
+    public void onTimelineChanged(Timeline timeline, Object manifest) {
+
+    }
+
+    @Override
+    public void onTracksChanged(TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+
+    }
+
+    @Override
+    public void onLoadingChanged(boolean isLoading) {
+        Log.d("buffering","loading" + isLoading);
+    }
+
+    @Override
+    public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+        Log.d("buffering","loading" + playWhenReady);
+        Log.d("buffering","loading" + playbackState);
+        switch(playbackState) {
+            case ExoPlayer.STATE_BUFFERING:
+                break;
+            case ExoPlayer.STATE_ENDED:
+                dialog.show();
+                nIndex = (nIndex + 1) % mData.size();
+                strVideo = mData.get(nIndex).strVideo;
+                playVideo();
+                break;
+            case ExoPlayer.STATE_IDLE:
+                break;
+            case ExoPlayer.STATE_READY:
+                Log.d("buffering","Ready");
+                dialog.dismiss();
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
+    public void onRepeatModeChanged(int repeatMode) {
+
+    }
+
+    @Override
+    public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+
+    }
+
+    @Override
+    public void onPlayerError(ExoPlaybackException error) {
+
+    }
+
+    @Override
+    public void onPositionDiscontinuity(int reason) {
+
+    }
+
+    @Override
+    public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+
+    }
+
+    @Override
+    public void onSeekProcessed() {
+
     }
 
     private class StoryData {

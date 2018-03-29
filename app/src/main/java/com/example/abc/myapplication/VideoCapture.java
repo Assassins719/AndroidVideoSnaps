@@ -295,12 +295,7 @@ public class VideoCapture extends AppCompatActivity implements Camera.AutoFocusC
     }
 
     private boolean prepareMediaRecorder() {
-
-
-
         //Log.v(TAG, "MediaRecorder initialized");
-
-
         mediaRecorder = new MediaRecorder();
         mCamera.unlock();
         mediaRecorder.setCamera(mCamera);
@@ -320,7 +315,7 @@ public class VideoCapture extends AppCompatActivity implements Camera.AutoFocusC
         mediaRecorder.setProfile(profile);
         mediaRecorder.setAudioChannels(1);
 //        mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.MPEG_4_SP);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+//        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
         mediaRecorder.setOutputFile(strVideoPath + strVideo + ".mp4");
         mediaRecorder.setMaxDuration(10000); // Set max duration 60 sec.
         mediaRecorder.setMaxFileSize(50000000); // Set max file size 50M

@@ -144,7 +144,24 @@ public class PreviewActivity extends AppCompatActivity {
                         mSnap.image_url = "";
                         mSnap.video_url = String.valueOf(downloadUrl);
                         mSnap.story_name = strStoryName;
-                        doUploadImg(mSnap, strVideoPath);
+//                        doUploadImg(mSnap, strVideoPath);
+                        mSnap.image_url = String.valueOf(downloadUrl);
+                        myRef = GlobalVar.mDatabaseRef.child("stories").child("" + mSnap.nTime);
+                        myRef.setValue(mSnap);
+                        File file = new File(strVideoPath);
+                        file.delete();
+                        if (file.exists()) {
+                            try {
+                                file.getCanonicalFile().delete();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                            if (file.exists()) {
+                                getApplicationContext().deleteFile(file.getName());
+                            }
+                        }
+                        Toast.makeText(getApplicationContext(), "Snap Upload Completed!",
+                                Toast.LENGTH_LONG).show();
                     }
                 })
                 .addOnFailureListener(new OnFailureListener() {
